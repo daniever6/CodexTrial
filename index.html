@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KOL 合作管理器</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar card">
+    <h1>KOL 合作管理器</h1>
+    <div class="stats" id="budgetStats"></div>
+  </header>
+
+  <section class="card controls">
+    <div class="row">
+      <input id="searchInput" placeholder="搜索名称/备注/语言..." />
+      <select id="filterCountry"><option value="">全部国家</option></select>
+      <select id="filterPlatform"><option value="">全部平台</option><option>YouTube</option><option>TikTok</option><option>IG</option></select>
+      <select id="filterStatus"><option value="">全部状态</option></select>
+      <select id="filterOwner"><option value="">全部负责人</option></select>
+    </div>
+    <div class="row">
+      <button id="addBtn">+ 新增合作</button>
+      <button id="exportCsvBtn">导出合作 CSV</button>
+      <button id="exportFollowupBtn">导出待跟进 CSV</button>
+      <button id="exportSummaryBtn">导出费用汇总 CSV</button>
+      <label class="upload-btn">导入 CSV<input id="importCsvInput" type="file" accept=".csv" hidden /></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>负责人 / 国家配置</h2>
+    <div class="row">
+      <input id="ownerInput" placeholder="负责人姓名" />
+      <input id="ownerCountryInput" placeholder="负责国家(ISO2，如 TR / US / ID)" maxlength="2" />
+      <button id="addOwnerBtn">添加负责人</button>
+    </div>
+    <div id="ownerList" class="owner-list"></div>
+  </section>
+
+  <section class="card">
+    <h2>Pipeline 看板</h2>
+    <div id="board" class="board"></div>
+  </section>
+
+  <section class="card">
+    <h2>合作表格（可直接编辑）</h2>
+    <div class="table-wrap">
+      <table id="kolTable">
+        <thead>
+          <tr id="tableHead"></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>待跟进清单（自动 + 手动）</h2>
+    <div class="row">
+      <input id="manualFollowupName" placeholder="KOL/事项名称" />
+      <input id="manualFollowupDate" type="date" />
+      <input id="manualFollowupOwner" placeholder="负责人" />
+      <input id="manualFollowupAction" placeholder="跟进行动" />
+      <button id="addFollowupBtn">添加待跟进</button>
+    </div>
+    <ul id="followupList" class="followup-list"></ul>
+  </section>
+
+  <section class="card">
+    <h2>消息模板（中/英/土）</h2>
+    <div id="templatePanel" class="template-panel">点击表格或看板中的“模板”查看对应文案。</div>
+  </section>
+
+  <section class="card help">
+    <h2>使用说明</h2>
+    <ol>
+      <li>点击“新增合作”添加条目，在表格直接编辑，支持点击表头排序。</li>
+      <li>在“负责人/国家配置”中维护负责人与国家（自动显示国旗），会用于筛选与协作分工。</li>
+      <li>看板中拖拽卡片可跨列更新状态，自动持久化到 localStorage。</li>
+      <li>待跟进会自动生成，也可手动添加或删除，都会保存。</li>
+      <li>支持导入/导出 CSV（合作列表、待跟进清单、费用汇总）。</li>
+      <li>同一达人可在“视频链接(多条)”输入多行链接，便于验收每条发布内容。</li>
+    </ol>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
