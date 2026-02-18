@@ -1,0 +1,23 @@
+[
+  {
+    "game_input_name": "Gossip Harbor",
+    "source_url": "https://apps.apple.com/us/app/gossip-harbor-merge-story/id1550205928",
+    "status": "fetch_failed",
+    "field_mapping": {},
+    "snippets": {}
+  },
+  {
+    "game_input_name": "Whiteout Survival",
+    "source_url": "https://play.google.com/store/apps/details?id=com.gof.global",
+    "status": "fetch_failed",
+    "field_mapping": {},
+    "snippets": {}
+  },
+  {
+    "game_input_name": "Squad Busters",
+    "source_url": "https://play.google.com/store/apps/details?id=com.supercell.squad",
+    "status": "fetch_failed",
+    "field_mapping": {},
+    "snippets": {}
+  }
+]
