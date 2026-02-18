@@ -3,67 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KOL 合作管理器</title>
+  <title>游戏商业化 DeepDive 工作台</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar card">
-    <h1>KOL 合作管理器</h1>
-    <div class="stats" id="budgetStats"></div>
+  <header class="card topbar">
+    <div>
+      <h1>游戏商业化 DeepDive 工作台</h1>
+      <p class="subtitle">按维度填数，自动汇总共性标签（IAP/IAA/订阅/LiveOps/风险等）。</p>
+    </div>
+    <div id="statsPanel" class="stats"></div>
   </header>
 
   <section class="card controls">
     <div class="row">
-      <input id="searchInput" placeholder="搜索名称/备注/语言..." />
-      <select id="filterCountry"><option value="">全部国家</option></select>
-      <select id="filterPlatform"><option value="">全部平台</option><option>YouTube</option><option>TikTok</option><option>IG</option></select>
-      <select id="filterStatus"><option value="">全部状态</option></select>
-      <select id="filterOwner"><option value="">全部负责人</option></select>
+      <input id="searchInput" placeholder="搜索游戏名/品类/主引擎/风险原因" />
+      <select id="filterModel"><option value="">全部变现模式</option></select>
+      <select id="filterEngine"><option value="">全部主引擎</option></select>
+      <select id="filterRisk"><option value="">全部风险等级</option></select>
     </div>
     <div class="row">
-      <button id="addBtn">+ 新增合作</button>
-      <button id="exportCsvBtn">导出合作 CSV</button>
-      <button id="exportFollowupBtn">导出待跟进 CSV</button>
-      <button id="exportSummaryBtn">导出费用汇总 CSV</button>
-      <label class="upload-btn">导入 CSV<input id="importCsvInput" type="file" accept=".csv" hidden /></label>
+      <button id="addBtn">+ 新增游戏样本</button>
+      <button id="duplicateBtn">复制当前样本</button>
+      <button id="exportBtn">导出 CSV</button>
+      <button id="exportTemplateBtn">下载模板 CSV</button>
+      <label class="upload-btn">导入 CSV<input id="importInput" type="file" accept=".csv" hidden /></label>
+      <button id="clearBtn" class="danger">清空全部</button>
     </div>
   </section>
 
-  <section class="card">
-    <h2>Pipeline 看板</h2>
-    <div id="board" class="board"></div>
+  <section class="workspace">
+    <aside class="card list-panel">
+      <h2>样本列表</h2>
+      <div id="sampleList" class="sample-list"></div>
+    </aside>
+
+    <main class="card editor-panel">
+      <h2>维度录入器</h2>
+      <div id="emptyHint" class="empty-hint">请先新增或选择一个游戏样本。</div>
+      <form id="editorForm" class="editor-form hidden"></form>
+    </main>
   </section>
 
   <section class="card">
-    <h2>合作表格（可直接编辑）</h2>
+    <h2>共性汇总（8个标准化标签）</h2>
+    <div id="insightPanel" class="insight-grid"></div>
     <div class="table-wrap">
-      <table id="kolTable">
+      <table>
         <thead>
-          <tr id="tableHead"></tr>
+          <tr>
+            <th>标签</th>
+            <th>分布</th>
+            <th>Top1</th>
+            <th>Top1占比</th>
+          </tr>
         </thead>
-        <tbody id="tableBody"></tbody>
+        <tbody id="commonTableBody"></tbody>
       </table>
     </div>
-  </section>
-
-  <section class="card">
-    <h2>待跟进清单</h2>
-    <ul id="followupList" class="followup-list"></ul>
-  </section>
-
-  <section class="card">
-    <h2>消息模板（中/英/土）</h2>
-    <div id="templatePanel" class="template-panel">点击表格或看板中的“模板”查看对应文案。</div>
   </section>
 
   <section class="card help">
     <h2>使用说明</h2>
     <ol>
-      <li>点击“新增合作”添加空白条目，在表格里直接编辑字段，支持排序（点击表头）。</li>
-      <li>看板中可拖拽卡片跨列更新状态；拖拽后会自动保存到 localStorage。</li>
-      <li>顶部筛选支持国家/平台/状态/负责人和关键词搜索。</li>
-      <li>导出支持：合作列表、待跟进清单、费用汇总；导入 CSV 时表头需与导出一致。</li>
-      <li>自动计算预算、CPV/CPC（缺少数据会显示 N/A），并自动生成按截止日期的待跟进提醒。</li>
+      <li>先在左侧选择游戏，再在右侧按“6大块维度”填写。</li>
+      <li>多选字段请用分号分隔，如 <code>Rewarded;Interstitial</code>。</li>
+      <li>建议先填“标准化标签”字段，可直接驱动共性统计。</li>
+      <li>导入 CSV 时表头需与模板一致，数据会自动保存到浏览器本地。</li>
     </ol>
   </section>
 
