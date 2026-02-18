@@ -3,57 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>游戏商业化 DeepDive 导入工具</title>
+  <title>游戏商业化 DeepDive 工作台</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar card">
+  <header class="card topbar">
     <div>
-      <h1>游戏商业化 DeepDive 导入工具</h1>
-      <p class="subtitle">按你给的商业化维度录入、导入和导出 CSV，并自动汇总共性标签。</p>
+      <h1>游戏商业化 DeepDive 工作台</h1>
+      <p class="subtitle">按维度填数，自动汇总共性标签（IAP/IAA/订阅/LiveOps/风险等）。</p>
     </div>
-    <div class="stats" id="statsPanel"></div>
+    <div id="statsPanel" class="stats"></div>
   </header>
 
   <section class="card controls">
     <div class="row">
-      <input id="searchInput" placeholder="搜索游戏名/类型/主引擎/风险原因..." />
+      <input id="searchInput" placeholder="搜索游戏名/品类/主引擎/风险原因" />
       <select id="filterModel"><option value="">全部变现模式</option></select>
       <select id="filterEngine"><option value="">全部主引擎</option></select>
-      <select id="filterRhythm"><option value="">全部 LiveOps 节奏</option></select>
-      <select id="filterRisk"><option value="">全部欧洲风险等级</option></select>
+      <select id="filterRisk"><option value="">全部风险等级</option></select>
     </div>
     <div class="row">
-      <button id="addBtn">+ 新增游戏</button>
-      <button id="exportBtn">导出 DeepDive CSV</button>
-      <button id="exportTemplateBtn">下载导入模板 CSV</button>
+      <button id="addBtn">+ 新增游戏样本</button>
+      <button id="duplicateBtn">复制当前样本</button>
+      <button id="exportBtn">导出 CSV</button>
+      <button id="exportTemplateBtn">下载模板 CSV</button>
       <label class="upload-btn">导入 CSV<input id="importInput" type="file" accept=".csv" hidden /></label>
-      <button id="clearBtn" class="danger">清空全部数据</button>
+      <button id="clearBtn" class="danger">清空全部</button>
     </div>
   </section>
 
-  <section class="card">
-    <h2>标准化标签概览（用于最后统计共性）</h2>
-    <div id="insightPanel" class="insight-grid"></div>
+  <section class="workspace">
+    <aside class="card list-panel">
+      <h2>样本列表</h2>
+      <div id="sampleList" class="sample-list"></div>
+    </aside>
+
+    <main class="card editor-panel">
+      <h2>维度录入器</h2>
+      <div id="emptyHint" class="empty-hint">请先新增或选择一个游戏样本。</div>
+      <form id="editorForm" class="editor-form hidden"></form>
+    </main>
   </section>
 
   <section class="card">
-    <h2>DeepDive 主表（可直接编辑，点击表头排序）</h2>
+    <h2>共性汇总（8个标准化标签）</h2>
+    <div id="insightPanel" class="insight-grid"></div>
     <div class="table-wrap">
       <table>
-        <thead><tr id="tableHead"></tr></thead>
-        <tbody id="tableBody"></tbody>
+        <thead>
+          <tr>
+            <th>标签</th>
+            <th>分布</th>
+            <th>Top1</th>
+            <th>Top1占比</th>
+          </tr>
+        </thead>
+        <tbody id="commonTableBody"></tbody>
       </table>
     </div>
   </section>
 
   <section class="card help">
-    <h2>录入建议</h2>
+    <h2>使用说明</h2>
     <ol>
-      <li>多选字段（如广告类型、活动类型、IAP 商品类型）请用半角分号分隔：<code>Rewarded;Interstitial</code>。</li>
-      <li>优先填「标准化标签」8列，能帮助你快速横向对比所有游戏。</li>
-      <li>导入 CSV 时表头需与模板一致；未知枚举值会保留原值，方便后续修正。</li>
-      <li>数据会自动保存在浏览器 localStorage，刷新页面不会丢失。</li>
+      <li>先在左侧选择游戏，再在右侧按“6大块维度”填写。</li>
+      <li>多选字段请用分号分隔，如 <code>Rewarded;Interstitial</code>。</li>
+      <li>建议先填“标准化标签”字段，可直接驱动共性统计。</li>
+      <li>导入 CSV 时表头需与模板一致，数据会自动保存到浏览器本地。</li>
     </ol>
   </section>
 
