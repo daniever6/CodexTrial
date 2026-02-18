@@ -14,7 +14,7 @@
 
   <section class="card controls">
     <div class="row">
-      <input id="searchInput" placeholder="搜索名称/备注/语言..." />
+      <input id="searchInput" placeholder="搜索名称/备注..." />
       <select id="filterCountry"><option value="">全部国家</option></select>
       <select id="filterPlatform"><option value="">全部平台</option><option>YouTube</option><option>TikTok</option><option>IG</option></select>
       <select id="filterStatus"><option value="">全部状态</option></select>
@@ -33,7 +33,7 @@
     <h2>负责人 / 国家配置</h2>
     <div class="row">
       <input id="ownerInput" placeholder="负责人姓名" />
-      <input id="ownerCountryInput" placeholder="负责国家(ISO2，如 TR / US / ID)" maxlength="2" />
+      <select id="ownerCountryInput"></select>
       <button id="addOwnerBtn">添加负责人</button>
     </div>
     <div id="ownerList" class="owner-list"></div>
@@ -45,13 +45,21 @@
   </section>
 
   <section class="card">
-    <h2>合作表格（可直接编辑）</h2>
+    <h2>合作表格（精简）</h2>
     <div class="table-wrap">
-      <table id="kolTable">
-        <thead>
-          <tr id="tableHead"></tr>
-        </thead>
+      <table>
+        <thead><tr id="tableHead"></tr></thead>
         <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>KOL 素材库（Brief + 素材 + 链接验收）</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="assetHead"></tr></thead>
+        <tbody id="assetBody"></tbody>
       </table>
     </div>
   </section>
@@ -68,20 +76,14 @@
     <ul id="followupList" class="followup-list"></ul>
   </section>
 
-  <section class="card">
-    <h2>消息模板（中/英/土）</h2>
-    <div id="templatePanel" class="template-panel">点击表格或看板中的“模板”查看对应文案。</div>
-  </section>
-
   <section class="card help">
     <h2>使用说明</h2>
     <ol>
-      <li>点击“新增合作”添加条目，在表格直接编辑，支持点击表头排序。</li>
-      <li>在“负责人/国家配置”中维护负责人与国家（自动显示国旗），会用于筛选与协作分工。</li>
-      <li>看板中拖拽卡片可跨列更新状态，自动持久化到 localStorage。</li>
-      <li>待跟进会自动生成，也可手动添加或删除，都会保存。</li>
-      <li>支持导入/导出 CSV（合作列表、待跟进清单、费用汇总）。</li>
-      <li>同一达人可在“视频链接(多条)”输入多行链接，便于验收每条发布内容。</li>
+      <li>先在负责人配置中添加负责人和国家（下拉选项），再新增合作。</li>
+      <li>合作表格只保留核心字段，操作列只保留“删除”。</li>
+      <li>Brief/素材/发布链接统一放在“KOL素材库”表格，并可标记素材是否已齐。</li>
+      <li>国家和语言都是下拉选项（语言为常用欧洲语言）。</li>
+      <li>待跟进支持自动提醒 + 手动添加/删除，全部本地保存。</li>
     </ol>
   </section>
 
