@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>游戏广告文案 + 智能海报生成器</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --panel: #ffffff;
+      --text: #18233d;
+      --muted: #647195;
+      --line: #dbe2f1;
+      --primary: #4664ff;
+      --primary-2: #7a5cff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 10% 0%, #eef3ff 0, #f7f9ff 30%, #f4f6fb 100%);
+    }
+
+    .app {
+      max-width: 1520px;
+      margin: 24px auto;
+      padding: 0 18px 24px;
+      display: grid;
+      grid-template-columns: minmax(430px, 600px) 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 12px 36px rgba(33, 57, 121, 0.08);
+      padding: 18px;
+    }
+
+    h1 { margin: 2px 0 14px; font-size: 26px; }
+    h2 { margin: 0 0 12px; font-size: 17px; }
+    .desc { color: var(--muted); font-size: 13px; margin: 0 0 14px; line-height: 1.5; }
+
+    .section {
+      border: 1px solid #e7ecf8;
+      border-radius: 14px;
+      padding: 12px;
+      background: #fbfcff;
+      margin-bottom: 12px;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field { margin-bottom: 10px; }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .v { color: #4f63a5; font-weight: 600; }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="url"],
+    input[type="range"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #d7deee;
+      border-radius: 10px;
+      font-size: 14px;
+      padding: 10px 11px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input[type="range"] {
+      padding: 6px 8px;
+      height: 38px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #97aafc;
+      box-shadow: 0 0 0 3px rgba(97, 124, 255, 0.12);
+    }
+
+    textarea { min-height: 92px; resize: vertical; }
+
+    .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 13px;
+      font-size: 13px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      cursor: pointer;
+      transition: transform .12s ease, filter .12s ease;
+    }
+
+    button:hover { filter: brightness(1.06); transform: translateY(-1px); }
+    button.sub { background: #edf1ff; color: #2f447d; border: 1px solid #d6e0ff; }
+
+    .result-container { display: grid; gap: 10px; }
+
+    .list {
+      border: 1px solid #dde4f4;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      border-top: 1px solid #eef2fb;
+    }
+
+    .item:first-child { border-top: none; }
+    .item .txt { font-size: 14px; line-height: 1.45; color: #20315c; }
+
+    .chip {
+      display: inline-block;
+      margin-right: 6px;
+      padding: 2px 7px;
+      font-size: 11px;
+      border-radius: 999px;
+      color: #3654b3;
+      background: #eaf0ff;
+    }
+
+    .stage {
+      background: #f9fbff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tip { color: var(--muted); font-size: 12px; }
+
+    .canvas-wrap {
+      border-radius: 12px;
+      border: 1px solid #d8e0ef;
+      background: #fff;
+      overflow: auto;
+      max-height: calc(100vh - 130px);
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    #posterCanvas {
+      width: min(100%, 460px);
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 18px 40px rgba(36, 54, 111, 0.18);
+      background: #dfe5f2;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .status { font-size: 12px; color: #5770c2; margin-top: 6px; }
+
+    @media (max-width: 1180px) {
+      .app { grid-template-columns: 1fr; }
+      .canvas-wrap { max-height: none; }
+      #posterCanvas { width: min(100%, 600px); }
+      .row-2, .row-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="panel">
+      <h1>游戏广告文案 + 智能海报生成器</h1>
+      <p class="desc">支持离线运行，也可联网加载背景图。新增：文字行间距可调、背景/主视觉自适应模式与尺寸调节、一键应用修改、风格多元化、自定义 CTA 按钮图。</p>
+
+      <div class="section">
+        <h2>1) 文案参数</h2>
+        <div class="field">
+          <label for="gameName">游戏名</label>
+          <input id="gameName" type="text" value="星际远征" placeholder="例如：星际远征" />
+        </div>
+        <div class="field">
+          <label for="sellingPoints"><span>卖点（多行）</span><span>每行一个</span></label>
+          <textarea id="sellingPoints">高自由度宇宙探索
+史诗级舰队对战
+好友协作副本
+每日奖励不停</textarea>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="language">目标语言</label>
+            <select id="language">
+              <option value="zh">zh</option>
+              <option value="en">en</option>
+              <option value="de">de</option>
+              <option value="tr">tr</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="tone">语气</label>
+            <select id="tone">
+              <option value="casual">casual</option>
+              <option value="professional">professional</option>
+            </select>
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="limit">字符上限（每条）</label>
+            <input id="limit" type="number" min="20" max="220" value="68" />
+          </div>
+          <div class="field">
+            <label for="theme">风格主题</label>
+            <select id="theme">
+              <option value="cyber">cyber</option>
+              <option value="dark">dark</option>
+              <option value="cute">cute</option>
+              <option value="minimal">minimal</option>
+              <option value="neon">neon</option>
+              <option value="retro">retro</option>
+              <option value="nature">nature</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>2) 背景图</h2>
+        <div class="field">
+          <label for="bgImageUpload">上传背景图</label>
+          <input id="bgImageUpload" type="file" accept="image/*" />
+        </div>
+        <div class="field">
+          <label for="bgImageUrl">或在线图片 URL（可联网）</label>
+          <input id="bgImageUrl" type="url" placeholder="https://..." />
+        </div>
+        <div class="row-3">
+          <div class="field">
+            <label for="bgFitMode">背景适配模式</label>
+            <select id="bgFitMode">
+              <option value="cover">cover（铺满裁切）</option>
+              <option value="contain">contain（完整显示）</option>
+              <option value="stretch">stretch（拉伸）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="bgZoom">背景尺寸缩放 <span id="bgZoomVal" class="v">100%</span></label>
+            <input id="bgZoom" type="range" min="70" max="160" value="100" />
+          </div>
+          <div class="field">
+            <label for="bgVShift">背景垂直偏移 <span id="bgShiftVal" class="v">0</span></label>
+            <input id="bgVShift" type="range" min="-300" max="300" value="0" />
+          </div>
+        </div>
+        <div class="buttons">
+          <button id="loadUrlBtn" class="sub" type="button">加载 URL 背景</button>
+          <button id="clearBgBtn" class="sub" type="button">清除背景图</button>
+        </div>
+        <p class="desc" style="margin-top:8px;">提示：若来源站点不允许跨域，浏览器可能限制导出 PNG（Canvas 污染）。建议使用支持 CORS 的图片地址。</p>
+      </div>
+
+      <div class="section">
+        <h2>3) 主视觉图 + CTA 按钮图</h2>
+        <div class="row-2">
+          <div class="field">
+            <label for="heroImage">上传主视觉图</label>
+            <input id="heroImage" type="file" accept="image/*" />
+          </div>
+          <div class="field">
+            <label for="buttonImage">上传 CTA 按钮图片（可选）</label>
+            <input id="buttonImage" type="file" accept="image/*" />
+          </div>
+        </div>
+
+        <div class="row-3">
+          <div class="field">
+            <label for="heroFitMode">主视觉适配模式</label>
+            <select id="heroFitMode">
+              <option value="fitWidth">按宽度</option>
+              <option value="contain">完整显示</option>
+              <option value="cover">铺满区域</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="heroScale">主视觉尺寸 <span id="heroScaleVal" class="v">100%</span></label>
+            <input id="heroScale" type="range" min="40" max="260" value="100" />
+          </div>
+          <div class="field">
+            <label for="buttonScale">按钮图尺寸 <span id="buttonScaleVal" class="v">100%</span></label>
+            <input id="buttonScale" type="range" min="60" max="180" value="100" />
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>4) 文字排版微调（行间可调）</h2>
+        <div class="row-3">
+          <div class="field">
+            <label for="titleLineHeight">标题行距 <span id="titleLHVal" class="v">86</span></label>
+            <input id="titleLineHeight" type="range" min="64" max="120" value="86" />
+          </div>
+          <div class="field">
+            <label for="bulletLineHeight">卖点行距 <span id="bulletLHVal" class="v">48</span></label>
+            <input id="bulletLineHeight" type="range" min="34" max="80" value="48" />
+          </div>
+          <div class="field">
+            <label for="bulletGap">卖点段间距 <span id="bulletGapVal" class="v">22</span></label>
+            <input id="bulletGap" type="range" min="4" max="52" value="22" />
+          </div>
+        </div>
+        <div class="buttons">
+          <button id="quickPolishBtn" class="sub" type="button">一键美化排版</button>
+          <button id="applyAllBtn" class="sub" type="button">一键应用修改</button>
+          <button id="randomStyleBtn" class="sub" type="button">随机多元风格</button>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button id="generateBtn">生成 10 条文案 + 3 CTA</button>
+        <button id="copyAllBtn" class="sub">复制全部</button>
+        <button id="csvBtn" class="sub">下载 CSV</button>
+        <button id="rerenderBtn" class="sub">刷新海报</button>
+        <button id="exportBtn" class="sub">导出 PNG</button>
+      </div>
+
+      <div id="results" class="result-container" style="margin-top:14px;"></div>
+    </section>
+
+    <section class="stage">
+      <div class="toolbar">
+        <h2 style="margin:0;">海报预览（1080 × 1920）</h2>
+        <span class="tip">自动布局：根据背景图亮度与复杂度选择更易读区域</span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="posterCanvas" width="1080" height="1920"></canvas>
+      </div>
+      <div id="status" class="status">就绪</div>
+    </section>
+  </div>
+
+  <script>
+    const ui = {
+      gameName: document.getElementById('gameName'),
+      sellingPoints: document.getElementById('sellingPoints'),
+      language: document.getElementById('language'),
+      tone: document.getElementById('tone'),
+      limit: document.getElementById('limit'),
+      theme: document.getElementById('theme'),
+
+      bgImageUpload: document.getElementById('bgImageUpload'),
+      bgImageUrl: document.getElementById('bgImageUrl'),
+      bgFitMode: document.getElementById('bgFitMode'),
+      bgZoom: document.getElementById('bgZoom'),
+      bgVShift: document.getElementById('bgVShift'),
+      bgZoomVal: document.getElementById('bgZoomVal'),
+      bgShiftVal: document.getElementById('bgShiftVal'),
+      loadUrlBtn: document.getElementById('loadUrlBtn'),
+      clearBgBtn: document.getElementById('clearBgBtn'),
+
+      heroImage: document.getElementById('heroImage'),
+      heroFitMode: document.getElementById('heroFitMode'),
+      heroScale: document.getElementById('heroScale'),
+      heroScaleVal: document.getElementById('heroScaleVal'),
+
+      buttonImage: document.getElementById('buttonImage'),
+      buttonScale: document.getElementById('buttonScale'),
+      buttonScaleVal: document.getElementById('buttonScaleVal'),
+
+      titleLineHeight: document.getElementById('titleLineHeight'),
+      bulletLineHeight: document.getElementById('bulletLineHeight'),
+      bulletGap: document.getElementById('bulletGap'),
+      titleLHVal: document.getElementById('titleLHVal'),
+      bulletLHVal: document.getElementById('bulletLHVal'),
+      bulletGapVal: document.getElementById('bulletGapVal'),
+
+      quickPolishBtn: document.getElementById('quickPolishBtn'),
+      applyAllBtn: document.getElementById('applyAllBtn'),
+      randomStyleBtn: document.getElementById('randomStyleBtn'),
+
+      generateBtn: document.getElementById('generateBtn'),
+      copyAllBtn: document.getElementById('copyAllBtn'),
+      csvBtn: document.getElementById('csvBtn'),
+      rerenderBtn: document.getElementById('rerenderBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      results: document.getElementById('results'),
+      status: document.getElementById('status'),
+      canvas: document.getElementById('posterCanvas')
+    };
+
+    const ctx = ui.canvas.getContext('2d');
+    const bgAnalyzeCanvas = document.createElement('canvas');
+    bgAnalyzeCanvas.width = 1080;
+    bgAnalyzeCanvas.height = 1920;
+    const bgAnalyzeCtx = bgAnalyzeCanvas.getContext('2d', { willReadFrequently: true });
+
+    const state = {
+      ads: [],
+      ctas: [],
+      bgImg: null,
+      heroImg: null,
+      buttonImg: null,
+      bgSettings: { fit: 'cover', zoom: 1, shiftY: 0 },
+      heroSettings: { fit: 'fitWidth', scale: 1 },
+      buttonSettings: { scale: 1 },
+      textSettings: { titleLH: 86, bulletLH: 48, bulletGap: 22 },
+      heroTransform: { x: 540, y: 820, dragging: false, startX: 0, startY: 0 },
+      layout: { y: 250, panel: 'rgba(0,0,0,0.45)', title: '#fff', bullet: '#f3f7ff', ctaText: '#fff' }
+    };
+
+    const lexicon = {
+      zh: {
+        casual: {
+          starters: ['马上开打', '冲就完事', '今晚就上号', '别等了', '速来体验'],
+          hooks: ['沉浸感拉满', '爽快节奏', '零门槛上手', '细节很上头', '朋友都在玩'],
+          ctas: ['立即开玩', '马上下载', '现在加入']
+        },
+        professional: {
+          starters: ['全新版本上线', '高品质体验', '策略与操作并重', '次世代视觉表现', '深度成长体系'],
+          hooks: ['稳定流畅', '内容持续更新', '多维玩法设计', '社交协作丰富', '长期运营保障'],
+          ctas: ['立即体验', '预约下载', '加入战局']
+        }
+      },
+      en: {
+        casual: {
+          starters: ['Jump in now', 'Ready to roll', 'Start tonight', 'No waiting', 'Your squad is here'],
+          hooks: ['pure hype', 'easy to pick up', 'fast-paced fun', 'packed with rewards', 'crazy good vibes'],
+          ctas: ['Play Now', 'Download Today', 'Join the Action']
+        },
+        professional: {
+          starters: ['New season available', 'Premium gameplay', 'Built for strategic depth', 'High-end visual quality', 'Competitive-ready systems'],
+          hooks: ['stable performance', 'ongoing live updates', 'strong retention design', 'co-op and PvP balance', 'clear progression loop'],
+          ctas: ['Experience Now', 'Install Now', 'Enter the Arena']
+        }
+      },
+      de: {
+        casual: {
+          starters: ['Jetzt einsteigen', 'Los geht’s', 'Heute Abend starten', 'Nicht warten', 'Team wartet schon'],
+          hooks: ['macht sofort Spaß', 'leicht zu lernen', 'schnelles Gameplay', 'starke Belohnungen', 'richtig gute Stimmung'],
+          ctas: ['Jetzt spielen', 'Jetzt downloaden', 'Direkt mitmachen']
+        },
+        professional: {
+          starters: ['Neue Saison ist live', 'Hochwertiges Spielerlebnis', 'Strategie trifft Action', 'Moderne Grafikqualität', 'Tiefes Fortschrittssystem'],
+          hooks: ['stabile Performance', 'regelmäßige Updates', 'vielfältige Modi', 'Teamfokus und Wettbewerb', 'nachhaltige Motivation'],
+          ctas: ['Jetzt erleben', 'Installieren', 'Zur Arena']
+        }
+      },
+      tr: {
+        casual: {
+          starters: ['Hemen başla', 'Şimdi dal', 'Bu akşam oyundayız', 'Bekleme', 'Ekibin hazır'],
+          hooks: ['çok akıcı', 'öğrenmesi kolay', 'hızlı tempolu', 'ödül dolu', 'tam keyif modu'],
+          ctas: ['Hemen Oyna', 'Şimdi İndir', 'Mücadeleye Katıl']
+        },
+        professional: {
+          starters: ['Yeni sezon yayında', 'Kaliteli oyun deneyimi', 'Strateji ve aksiyon dengesi', 'Gelişmiş görsel kalite', 'Derin ilerleme sistemi'],
+          hooks: ['kararlı performans', 'sürekli içerik güncellemesi', 'çok yönlü modlar', 'takım odaklı yapı', 'uzun vadeli bağlılık'],
+          ctas: ['Şimdi Deneyimle', 'Hemen Yükle', 'Arenaya Katıl']
+        }
+      }
+    };
+
+    const themes = {
+      cyber: { cta: '#00b7ff', badge: '#7ce8ff' },
+      dark: { cta: '#f0567d', badge: '#ff9ab4' },
+      cute: { cta: '#ff66af', badge: '#8b63ff' },
+      minimal: { cta: '#1f3f74', badge: '#243c66' },
+      neon: { cta: '#13f5a1', badge: '#49ffcd' },
+      retro: { cta: '#f58b3b', badge: '#f6c78f' },
+      nature: { cta: '#2fa36b', badge: '#80e0b0' }
+    };
+
+    function setStatus(text, isWarn = false) {
+      ui.status.textContent = text;
+      ui.status.style.color = isWarn ? '#b05f25' : '#5770c2';
+    }
+
+    function syncControlLabels() {
+      ui.bgZoomVal.textContent = `${Math.round(state.bgSettings.zoom * 100)}%`;
+      ui.bgShiftVal.textContent = `${state.bgSettings.shiftY}`;
+      ui.heroScaleVal.textContent = `${Math.round(state.heroSettings.scale * 100)}%`;
+      ui.buttonScaleVal.textContent = `${Math.round(state.buttonSettings.scale * 100)}%`;
+      ui.titleLHVal.textContent = `${state.textSettings.titleLH}`;
+      ui.bulletLHVal.textContent = `${state.textSettings.bulletLH}`;
+      ui.bulletGapVal.textContent = `${state.textSettings.bulletGap}`;
+    }
+
+    function getSellingPoints() {
+      return ui.sellingPoints.value.split('\n').map(s => s.trim()).filter(Boolean);
+    }
+
+    function clampText(text, maxLen) {
+      if (text.length <= maxLen) return text;
+      return text.slice(0, Math.max(0, maxLen - 1)).trimEnd() + '…';
+    }
+
+    function pick(arr, idx) { return arr[idx % arr.length]; }
+
+    function generateCopies() {
+      const game = ui.gameName.value.trim() || 'Untitled Game';
+      const points = getSellingPoints();
+      const lang = ui.language.value;
+      const tone = ui.tone.value;
+      const limit = Math.max(20, Number(ui.limit.value) || 68);
+      const dict = (lexicon[lang] && lexicon[lang][tone]) || lexicon.en.casual;
+
+      const ads = [];
+      for (let i = 0; i < 10; i++) {
+        const starter = pick(dict.starters, i);
+        const hook = pick(dict.hooks, i + 2);
+        const point = points.length ? pick(points, i) : '';
+        const text = [starter, game, point, hook].filter(Boolean).join(' · ');
+        ads.push(clampText(text, limit));
+      }
+
+      const ctas = dict.ctas.slice(0, 3).map(c => clampText(c, limit));
+      state.ads = ads;
+      state.ctas = ctas;
+      renderResults();
+      renderPoster();
+    }
+
+    function renderResults() {
+      ui.results.innerHTML = '';
+      const frag = document.createDocumentFragment();
+
+      const createList = (title, items, prefix) => {
+        const h = document.createElement('h2');
+        h.textContent = title;
+        const list = document.createElement('div');
+        list.className = 'list';
+
+        items.forEach((text, i) => {
+          const row = document.createElement('div');
+          row.className = 'item';
+          const txt = document.createElement('div');
+          txt.className = 'txt';
+          txt.innerHTML = `<span class="chip">${prefix} ${i + 1}</span>${escapeHtml(text)}`;
+          const btn = document.createElement('button');
+          btn.className = 'sub';
+          btn.textContent = '复制';
+          btn.addEventListener('click', () => copyText(text));
+          row.append(txt, btn);
+          list.appendChild(row);
+        });
+
+        frag.append(h, list);
+      };
+
+      createList('广告短文案（10）', state.ads, 'Ad');
+      createList('CTA（3）', state.ctas, 'CTA');
+      ui.results.appendChild(frag);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>\"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus('已复制到剪贴板');
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        setStatus('已复制到剪贴板（兼容模式）');
+      }
+    }
+
+    function copyAll() {
+      const lines = [
+        ...state.ads.map((t, i) => `Ad ${i + 1},${csvEscape(t)}`),
+        ...state.ctas.map((t, i) => `CTA ${i + 1},${csvEscape(t)}`)
+      ].join('\n');
+      copyText(lines);
+    }
+
+    function csvEscape(s) {
+      return `"${String(s).replace(/"/g, '""')}"`;
+    }
+
+    function downloadCSV() {
+      const rows = [['type', 'index', 'text']];
+      state.ads.forEach((t, i) => rows.push(['ad', String(i + 1), t]));
+      state.ctas.forEach((t, i) => rows.push(['cta', String(i + 1), t]));
+      const content = rows.map(r => r.map(csvEscape).join(',')).join('\n');
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'ad_copies.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      setStatus('CSV 已下载');
+    }
+
+    function drawFallbackBackground(drawCtx = ctx) {
+      const grad = drawCtx.createLinearGradient(0, 0, 1080, 1920);
+      grad.addColorStop(0, '#2a4fd8');
+      grad.addColorStop(0.6, '#5f63ff');
+      grad.addColorStop(1, '#9e7eff');
+      drawCtx.fillStyle = grad;
+      drawCtx.fillRect(0, 0, 1080, 1920);
+
+      drawCtx.globalAlpha = 0.16;
+      for (let i = 0; i < 14; i++) {
+        drawCtx.fillStyle = i % 2 ? '#fff' : '#c7d4ff';
+        drawCtx.beginPath();
+        drawCtx.arc((i * 157) % 1080, (i * 251) % 1920, 48 + (i % 5) * 20, 0, Math.PI * 2);
+        drawCtx.fill();
+      }
+      drawCtx.globalAlpha = 1;
+    }
+
+    function drawAdaptiveImage(drawCtx, image, options = {}) {
+      const cw = 1080;
+      const ch = 1920;
+      const fit = options.fit || 'cover';
+      const zoom = options.zoom || 1;
+      const shiftX = options.shiftX || 0;
+      const shiftY = options.shiftY || 0;
+
+      if (fit === 'stretch') {
+        const w = cw * zoom;
+        const h = ch * zoom;
+        const x = (cw - w) / 2 + shiftX;
+        const y = (ch - h) / 2 + shiftY;
+        drawCtx.drawImage(image, x, y, w, h);
+        return;
+      }
+
+      const ratio = fit === 'contain'
+        ? Math.min(cw / image.width, ch / image.height)
+        : Math.max(cw / image.width, ch / image.height);
+
+      const w = image.width * ratio * zoom;
+      const h = image.height * ratio * zoom;
+      const x = (cw - w) / 2 + shiftX;
+      const y = (ch - h) / 2 + shiftY;
+      drawCtx.drawImage(image, x, y, w, h);
+    }
+
+    function drawBackground(drawCtx = ctx) {
+      if (!state.bgImg) {
+        drawFallbackBackground(drawCtx);
+        return;
+      }
+      drawAdaptiveImage(drawCtx, state.bgImg, {
+        fit: state.bgSettings.fit,
+        zoom: state.bgSettings.zoom,
+        shiftY: state.bgSettings.shiftY
+      });
+    }
+
+    function drawHeroImage() {
+      if (!state.heroImg) return;
+      const fit = state.heroSettings.fit;
+      const scale = state.heroSettings.scale;
+
+      let w;
+      if (fit === 'contain') {
+        w = Math.min(760, (760 * state.heroImg.width / Math.max(state.heroImg.height, 1))) * scale;
+      } else if (fit === 'cover') {
+        w = 900 * scale;
+      } else {
+        w = 760 * scale;
+      }
+      const h = state.heroImg.height / Math.max(state.heroImg.width, 1) * w;
+      const { x, y } = state.heroTransform;
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 24;
+      ctx.globalAlpha = 0.98;
+      ctx.drawImage(state.heroImg, x - w / 2, y - h / 2, w, h);
+      ctx.restore();
+    }
+
+    function evaluateRegionLuma(x, y, w, h) {
+      const imgData = bgAnalyzeCtx.getImageData(x, y, w, h).data;
+      let sum = 0;
+      let sumSq = 0;
+      const total = imgData.length / 4;
+      for (let i = 0; i < imgData.length; i += 4) {
+        const lum = 0.2126 * imgData[i] + 0.7152 * imgData[i + 1] + 0.0722 * imgData[i + 2];
+        sum += lum;
+        sumSq += lum * lum;
+      }
+      const avg = sum / total;
+      const variance = Math.max(0, sumSq / total - avg * avg);
+      const std = Math.sqrt(variance);
+      return { avg, std };
+    }
+
+    function autoLayoutFromBackground() {
+      const candidates = [240, 720, 1210];
+      const rect = { x: 80, w: 920, h: 600 };
+
+      bgAnalyzeCtx.clearRect(0, 0, 1080, 1920);
+      drawBackground(bgAnalyzeCtx);
+
+      let best = null;
+      for (const y of candidates) {
+        const { avg, std } = evaluateRegionLuma(rect.x, y, rect.w, rect.h);
+        const smoothness = 255 - Math.min(255, std * 4);
+        const contrastPotential = Math.max(Math.abs(avg - 26), Math.abs(avg - 230));
+        const score = smoothness * 0.7 + contrastPotential * 0.3;
+        if (!best || score > best.score) best = { y, avg, std, score };
+      }
+
+      const useDarkText = best.avg > 150;
+      const panelAlpha = Math.max(0.3, Math.min(0.66, 0.58 - best.std / 180));
+      state.layout = {
+        y: best.y,
+        panel: useDarkText ? `rgba(255,255,255,${panelAlpha.toFixed(2)})` : `rgba(0,0,0,${panelAlpha.toFixed(2)})`,
+        title: useDarkText ? '#1b2440' : '#ffffff',
+        bullet: useDarkText ? '#243764' : '#ecf3ff',
+        ctaText: '#ffffff'
+      };
+    }
+
+    function drawWrappedText(text, x, y, maxWidth, lineHeight, color, font, maxLines = 3) {
+      ctx.font = font;
+      ctx.fillStyle = color;
+      let line = '';
+      let curY = y;
+      let lineCount = 1;
+      for (const ch of text) {
+        const test = line + ch;
+        if (ctx.measureText(test).width > maxWidth && line) {
+          ctx.fillText(line, x, curY);
+          line = ch;
+          curY += lineHeight;
+          lineCount++;
+          if (lineCount > maxLines) {
+            ctx.fillText('…', x + maxWidth - 24, curY - lineHeight);
+            return curY;
+          }
+        } else {
+          line = test;
+        }
+      }
+      if (line) ctx.fillText(line, x, curY);
+      return curY;
+    }
+
+    function roundRect(c, x, y, w, h, r) {
+      c.beginPath();
+      c.moveTo(x + r, y);
+      c.arcTo(x + w, y, x + w, y + h, r);
+      c.arcTo(x + w, y + h, x, y + h, r);
+      c.arcTo(x, y + h, x, y, r);
+      c.arcTo(x, y, x + w, y, r);
+      c.closePath();
+    }
+
+    function drawCTA(panelX, panelY, panelH, ctaText, theme) {
+      const btnX = panelX + 36;
+      const btnY = panelY + panelH - 156;
+      const baseW = 848;
+      const baseH = 104;
+      const scale = state.buttonSettings.scale;
+      const w = baseW * scale;
+      const h = baseH * scale;
+      const x = btnX + (baseW - w) / 2;
+      const y = btnY + (baseH - h) / 2;
+
+      if (state.buttonImg) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.28)';
+        ctx.shadowBlur = 12;
+        roundRect(ctx, x, y, w, h, Math.min(52, h / 2));
+        ctx.clip();
+        ctx.drawImage(state.buttonImg, x, y, w, h);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = theme.cta;
+        roundRect(ctx, x, y, w, h, Math.min(52, h / 2));
+        ctx.fill();
+      }
+
+      ctx.fillStyle = state.layout.ctaText;
+      ctx.font = `bold ${Math.max(38, Math.round(50 * scale))}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(ctaText, panelX + 460, y + h / 2 + 14);
+      ctx.textAlign = 'start';
+    }
+
+    function renderPoster() {
+      autoLayoutFromBackground();
+      drawBackground();
+      drawHeroImage();
+
+      const t = themes[ui.theme.value] || themes.cyber;
+      const game = ui.gameName.value.trim() || 'Untitled Game';
+      const points = getSellingPoints().slice(0, 3);
+      const ctaText = state.ctas[0] || ({ zh: '立即体验', en: 'Play Now', de: 'Jetzt spielen', tr: 'Hemen Oyna' }[ui.language.value] || 'Play Now');
+
+      const panelX = 80;
+      const panelY = state.layout.y;
+      const panelW = 920;
+      const panelH = 620;
+
+      ctx.save();
+      ctx.fillStyle = state.layout.panel;
+      roundRect(ctx, panelX, panelY, panelW, panelH, 34);
+      ctx.fill();
+
+      ctx.fillStyle = `${t.badge}E6`;
+      roundRect(ctx, panelX + 26, panelY + 28, 212, 50, 24);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.fillText('AD CREATIVE', panelX + 45, panelY + 62);
+
+      const titleBottom = drawWrappedText(
+        game,
+        panelX + 34,
+        panelY + 154,
+        850,
+        state.textSettings.titleLH,
+        state.layout.title,
+        'bold 78px sans-serif',
+        2
+      );
+
+      let py = titleBottom + 52;
+      points.forEach((p) => {
+        ctx.fillStyle = state.layout.bullet;
+        ctx.font = '700 40px sans-serif';
+        ctx.fillText('•', panelX + 38, py);
+        py = drawWrappedText(
+          p,
+          panelX + 82,
+          py,
+          790,
+          state.textSettings.bulletLH,
+          state.layout.bullet,
+          '600 39px sans-serif',
+          2
+        ) + state.textSettings.bulletGap;
+      });
+
+      drawCTA(panelX, panelY, panelH, ctaText, t);
+      ctx.restore();
+    }
+
+    function exportPNG() {
+      try {
+        const a = document.createElement('a');
+        a.href = ui.canvas.toDataURL('image/png');
+        a.download = 'poster_1080x1920.png';
+        a.click();
+        setStatus('PNG 已导出');
+      } catch (err) {
+        setStatus('导出失败：背景图可能跨域限制，请更换支持 CORS 的 URL', true);
+      }
+    }
+
+    async function loadImageFromUrl(url) {
+      if (!url) return;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.referrerPolicy = 'no-referrer';
+      const loaded = new Promise((resolve, reject) => {
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+      });
+      img.src = url;
+      try {
+        state.bgImg = await loaded;
+        setStatus('URL 背景图加载成功');
+        renderPoster();
+      } catch {
+        setStatus('URL 背景图加载失败，请检查链接或跨域策略', true);
+      }
+    }
+
+    function readImageFile(file, cb) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => cb(img);
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function applyAllTweaks() {
+      state.bgSettings.fit = ui.bgFitMode.value;
+      state.bgSettings.zoom = Number(ui.bgZoom.value) / 100;
+      state.bgSettings.shiftY = Number(ui.bgVShift.value);
+
+      state.heroSettings.fit = ui.heroFitMode.value;
+      state.heroSettings.scale = Number(ui.heroScale.value) / 100;
+
+      state.buttonSettings.scale = Number(ui.buttonScale.value) / 100;
+
+      state.textSettings.titleLH = Number(ui.titleLineHeight.value);
+      state.textSettings.bulletLH = Number(ui.bulletLineHeight.value);
+      state.textSettings.bulletGap = Number(ui.bulletGap.value);
+
+      syncControlLabels();
+      renderPoster();
+      setStatus('已一键应用修改');
+    }
+
+    function quickPolish() {
+      ui.titleLineHeight.value = '90';
+      ui.bulletLineHeight.value = '52';
+      ui.bulletGap.value = '26';
+      ui.bgFitMode.value = 'cover';
+      ui.bgZoom.value = '105';
+      ui.heroScale.value = '110';
+      ui.buttonScale.value = '104';
+      applyAllTweaks();
+      setStatus('已完成一键美化');
+    }
+
+    function randomStyle() {
+      const keys = Object.keys(themes);
+      const pickTheme = keys[Math.floor(Math.random() * keys.length)];
+      ui.theme.value = pickTheme;
+
+      const bgModes = ['cover', 'contain', 'stretch'];
+      const heroModes = ['fitWidth', 'contain', 'cover'];
+      ui.bgFitMode.value = bgModes[Math.floor(Math.random() * bgModes.length)];
+      ui.heroFitMode.value = heroModes[Math.floor(Math.random() * heroModes.length)];
+
+      ui.titleLineHeight.value = String(78 + Math.floor(Math.random() * 26));
+      ui.bulletLineHeight.value = String(42 + Math.floor(Math.random() * 18));
+      ui.bulletGap.value = String(14 + Math.floor(Math.random() * 20));
+      ui.bgZoom.value = String(90 + Math.floor(Math.random() * 30));
+      ui.bgVShift.value = String(-120 + Math.floor(Math.random() * 241));
+      ui.heroScale.value = String(80 + Math.floor(Math.random() * 60));
+      ui.buttonScale.value = String(90 + Math.floor(Math.random() * 30));
+
+      applyAllTweaks();
+      setStatus(`已切换随机风格：${pickTheme}`);
+    }
+
+    function bindCanvasInteraction() {
+      ui.canvas.addEventListener('mousedown', (e) => {
+        if (!state.heroImg) return;
+        state.heroTransform.dragging = true;
+        state.heroTransform.startX = e.offsetX;
+        state.heroTransform.startY = e.offsetY;
+      });
+
+      window.addEventListener('mouseup', () => { state.heroTransform.dragging = false; });
+
+      ui.canvas.addEventListener('mousemove', (e) => {
+        if (!state.heroTransform.dragging || !state.heroImg) return;
+        const ratio = ui.canvas.width / ui.canvas.getBoundingClientRect().width;
+        const dx = (e.offsetX - state.heroTransform.startX) * ratio;
+        const dy = (e.offsetY - state.heroTransform.startY) * ratio;
+        state.heroTransform.x += dx;
+        state.heroTransform.y += dy;
+        state.heroTransform.startX = e.offsetX;
+        state.heroTransform.startY = e.offsetY;
+        renderPoster();
+      });
+
+      ui.canvas.addEventListener('wheel', (e) => {
+        if (!state.heroImg) return;
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.05 : 0.05;
+        const next = Math.max(0.4, Math.min(2.6, state.heroSettings.scale + delta));
+        state.heroSettings.scale = next;
+        ui.heroScale.value = String(Math.round(next * 100));
+        syncControlLabels();
+        renderPoster();
+      }, { passive: false });
+    }
+
+    function setupEvents() {
+      ui.generateBtn.addEventListener('click', generateCopies);
+      ui.copyAllBtn.addEventListener('click', copyAll);
+      ui.csvBtn.addEventListener('click', downloadCSV);
+      ui.rerenderBtn.addEventListener('click', renderPoster);
+      ui.exportBtn.addEventListener('click', exportPNG);
+
+      ui.quickPolishBtn.addEventListener('click', quickPolish);
+      ui.applyAllBtn.addEventListener('click', applyAllTweaks);
+      ui.randomStyleBtn.addEventListener('click', randomStyle);
+
+      ui.gameName.addEventListener('input', renderPoster);
+      ui.sellingPoints.addEventListener('input', renderPoster);
+      ui.theme.addEventListener('change', renderPoster);
+      ui.language.addEventListener('change', generateCopies);
+      ui.tone.addEventListener('change', generateCopies);
+      ui.limit.addEventListener('change', generateCopies);
+
+      [ui.bgFitMode, ui.heroFitMode].forEach(el => el.addEventListener('change', applyAllTweaks));
+      [ui.bgZoom, ui.bgVShift, ui.heroScale, ui.buttonScale, ui.titleLineHeight, ui.bulletLineHeight, ui.bulletGap]
+        .forEach(el => el.addEventListener('input', applyAllTweaks));
+
+      ui.bgImageUpload.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        readImageFile(file, (img) => {
+          state.bgImg = img;
+          setStatus('本地背景图加载成功');
+          renderPoster();
+        });
+      });
+
+      ui.loadUrlBtn.addEventListener('click', () => loadImageFromUrl(ui.bgImageUrl.value.trim()));
+      ui.clearBgBtn.addEventListener('click', () => {
+        state.bgImg = null;
+        setStatus('已清除背景图，使用默认背景');
+        renderPoster();
+      });
+
+      ui.heroImage.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        readImageFile(file, (img) => {
+          state.heroImg = img;
+          state.heroTransform = { x: 540, y: 820, dragging: false, startX: 0, startY: 0 };
+          setStatus('主视觉图已加载，可拖拽 + 缩放');
+          renderPoster();
+        });
+      });
+
+      ui.buttonImage.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        readImageFile(file, (img) => {
+          state.buttonImg = img;
+          setStatus('CTA 按钮图已加载');
+          renderPoster();
+        });
+      });
+
+      bindCanvasInteraction();
+      syncControlLabels();
+    }
+
+    setupEvents();
+    generateCopies();
+  </script>
+</body>
+</html>
