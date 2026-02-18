@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>游戏广告文案 + 海报生成器</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #131a2f;
+      --panel-2: #1a2340;
+      --text: #eaf0ff;
+      --muted: #9fb0dc;
+      --accent: #4f8cff;
+      --accent-2: #7af0d2;
+      --danger: #ff6b81;
+      --border: rgba(255, 255, 255, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at 20% 0%, #1d2a5f 0%, #070b17 42%, #04060f 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1300px;
+      margin: 24px auto;
+      padding: 0 16px 30px;
+      display: grid;
+      grid-template-columns: minmax(360px, 520px) 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: linear-gradient(155deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 { margin: 2px 0 14px; font-size: 24px; }
+    h2 { margin: 0 0 12px; font-size: 17px; color: #d4e0ff; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field { margin-bottom: 10px; }
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: var(--muted);
+    }
+
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: rgba(10, 14, 28, 0.9);
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+
+    textarea { min-height: 84px; resize: vertical; }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #786bff);
+      cursor: pointer;
+    }
+    button.secondary { background: linear-gradient(135deg, #3b476e, #2f3b63); }
+    button.ghost { background: rgba(255,255,255,0.08); border: 1px solid var(--border); }
+    button:hover { filter: brightness(1.08); }
+
+    .result-list {
+      margin: 12px 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .result-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 10px;
+      background: rgba(8, 12, 26, 0.72);
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .result-item:first-child { border-top: none; }
+    .result-text { font-size: 14px; line-height: 1.4; white-space: pre-wrap; }
+    .tag {
+      display: inline-block;
+      margin-right: 6px;
+      font-size: 11px;
+      color: #93a9e6;
+      background: rgba(116,143,255,0.18);
+      padding: 2px 6px;
+      border-radius: 999px;
+    }
+
+    .stage-wrap { display: grid; grid-template-rows: auto 1fr; gap: 12px; }
+    .canvas-shell {
+      background: #050712;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .canvas-scroll {
+      overflow: auto;
+      max-height: calc(100vh - 120px);
+      display: flex;
+      justify-content: center;
+    }
+
+    #posterCanvas {
+      width: min(100%, 420px);
+      height: auto;
+      border-radius: 10px;
+      background: #111;
+      box-shadow: 0 10px 30px rgba(0,0,0,.42);
+      touch-action: none;
+    }
+
+    .helper {
+      font-size: 12px;
+      color: #9cb2e8;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 1024px) {
+      .wrap { grid-template-columns: 1fr; }
+      .canvas-scroll { max-height: none; }
+      #posterCanvas { width: min(100%, 500px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="panel">
+      <h1>游戏广告文案 + 海报生成器</h1>
+      <div class="field">
+        <label for="gameName">游戏名</label>
+        <input id="gameName" type="text" placeholder="例如：星际远征" value="星际远征" />
+      </div>
+
+      <div class="field">
+        <label for="sellingPoints">卖点（多行，每行一个）</label>
+        <textarea id="sellingPoints" placeholder="高自由度宇宙探索\n史诗级舰队对战\n好友协作副本">高自由度宇宙探索
+史诗级舰队对战
+好友协作副本
+每日奖励不停</textarea>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="language">目标语言</label>
+          <select id="language">
+            <option value="zh">zh</option>
+            <option value="en">en</option>
+            <option value="de">de</option>
+            <option value="tr">tr</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="tone">语气</label>
+          <select id="tone">
+            <option value="casual">casual</option>
+            <option value="professional">professional</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="limit">字符上限（每条）</label>
+          <input id="limit" type="number" min="20" max="200" value="65" />
+        </div>
+        <div class="field">
+          <label for="theme">海报主题风格</label>
+          <select id="theme">
+            <option value="cyber">cyber</option>
+            <option value="dark">dark</option>
+            <option value="cute">cute</option>
+            <option value="minimal">minimal</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="heroImage">主视觉图（支持拖拽、缩放、位置调整）</label>
+        <input id="heroImage" type="file" accept="image/*" />
+      </div>
+
+      <div class="btn-row">
+        <button id="generateBtn">生成文案 + CTA</button>
+        <button id="copyAllBtn" class="secondary">复制全部文案</button>
+        <button id="csvBtn" class="secondary">下载 CSV</button>
+        <button id="renderBtn" class="ghost">刷新海报</button>
+        <button id="exportBtn" class="ghost">导出海报 PNG</button>
+      </div>
+
+      <p class="helper">提示：在海报画布中按住鼠标拖动主视觉图，滚轮缩放；也可用下方“刷新海报”根据最新输入重绘。</p>
+
+      <h2 style="margin-top: 14px;">生成结果（10条广告文案 + 3条 CTA）</h2>
+      <div id="results"></div>
+    </section>
+
+    <section class="stage-wrap">
+      <div class="panel canvas-shell">
+        <h2>海报预览（1080 x 1920）</h2>
+        <div class="canvas-scroll">
+          <canvas id="posterCanvas" width="1080" height="1920"></canvas>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const ui = {
+      gameName: document.getElementById('gameName'),
+      sellingPoints: document.getElementById('sellingPoints'),
+      language: document.getElementById('language'),
+      tone: document.getElementById('tone'),
+      limit: document.getElementById('limit'),
+      theme: document.getElementById('theme'),
+      heroImage: document.getElementById('heroImage'),
+      generateBtn: document.getElementById('generateBtn'),
+      copyAllBtn: document.getElementById('copyAllBtn'),
+      csvBtn: document.getElementById('csvBtn'),
+      renderBtn: document.getElementById('renderBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      results: document.getElementById('results'),
+      canvas: document.getElementById('posterCanvas')
+    };
+
+    const ctx = ui.canvas.getContext('2d');
+    const state = {
+      ads: [],
+      ctas: [],
+      heroImg: null,
+      heroTransform: { x: 540, y: 980, scale: 1, dragging: false, startX: 0, startY: 0 }
+    };
+
+    const lexicon = {
+      zh: {
+        casual: {
+          starters: ['马上开打', '冲就完事', '今晚就上号', '别等了', '速来体验'],
+          hooks: ['沉浸感拉满', '爽快节奏', '零门槛上手', '细节很上头', '朋友都在玩'],
+          ctas: ['立即开玩', '马上下载', '现在加入']
+        },
+        professional: {
+          starters: ['全新版本上线', '高品质体验', '策略与操作并重', '次世代视觉表现', '深度成长体系'],
+          hooks: ['稳定流畅', '内容持续更新', '多维玩法设计', '社交协作丰富', '长期运营保障'],
+          ctas: ['立即体验', '预约下载', '加入战局']
+        }
+      },
+      en: {
+        casual: {
+          starters: ['Jump in now', 'Ready to roll', 'Start tonight', 'No waiting', 'Your squad is here'],
+          hooks: ['pure hype', 'easy to pick up', 'fast-paced fun', 'packed with rewards', 'crazy good vibes'],
+          ctas: ['Play Now', 'Download Today', 'Join the Action']
+        },
+        professional: {
+          starters: ['New season available', 'Premium gameplay', 'Built for strategic depth', 'High-end visual quality', 'Competitive-ready systems'],
+          hooks: ['stable performance', 'ongoing live updates', 'strong retention design', 'co-op and PvP balance', 'clear progression loop'],
+          ctas: ['Experience Now', 'Install Now', 'Enter the Arena']
+        }
+      },
+      de: {
+        casual: {
+          starters: ['Jetzt einsteigen', 'Los geht’s', 'Heute Abend starten', 'Nicht warten', 'Team wartet schon'],
+          hooks: ['macht sofort Spaß', 'leicht zu lernen', 'schnelles Gameplay', 'starke Belohnungen', 'richtig gute Stimmung'],
+          ctas: ['Jetzt spielen', 'Jetzt downloaden', 'Direkt mitmachen']
+        },
+        professional: {
+          starters: ['Neue Saison ist live', 'Hochwertiges Spielerlebnis', 'Strategie trifft Action', 'Moderne Grafikqualität', 'Tiefes Fortschrittssystem'],
+          hooks: ['stabile Performance', 'regelmäßige Updates', 'vielfältige Modi', 'Teamfokus und Wettbewerb', 'nachhaltige Motivation'],
+          ctas: ['Jetzt erleben', 'Installieren', 'Zur Arena']
+        }
+      },
+      tr: {
+        casual: {
+          starters: ['Hemen başla', 'Şimdi dal', 'Bu akşam oyundayız', 'Bekleme', 'Ekibin hazır'],
+          hooks: ['çok akıcı', 'öğrenmesi kolay', 'hızlı tempolu', 'ödül dolu', 'tam keyif modu'],
+          ctas: ['Hemen Oyna', 'Şimdi İndir', 'Mücadeleye Katıl']
+        },
+        professional: {
+          starters: ['Yeni sezon yayında', 'Kaliteli oyun deneyimi', 'Strateji ve aksiyon dengesi', 'Gelişmiş görsel kalite', 'Derin ilerleme sistemi'],
+          hooks: ['kararlı performans', 'sürekli içerik güncellemesi', 'çok yönlü modlar', 'takım odaklı yapı', 'uzun vadeli bağlılık'],
+          ctas: ['Şimdi Deneyimle', 'Hemen Yükle', 'Arenaya Katıl']
+        }
+      }
+    };
+
+    const themes = {
+      cyber: {
+        grad: ['#09132f', '#0d295a', '#10193b'],
+        accent: '#6bf7ff',
+        title: '#d8f7ff',
+        bullet: '#97f1ff',
+        btn: '#0dd4ff',
+        deco: '#2ef2ff'
+      },
+      dark: {
+        grad: ['#111217', '#1b1d25', '#090a0f'],
+        accent: '#f0567d',
+        title: '#f8ecf1',
+        bullet: '#f2bac8',
+        btn: '#f0567d',
+        deco: '#6f7388'
+      },
+      cute: {
+        grad: ['#ffd9f1', '#ffd0e1', '#d8e7ff'],
+        accent: '#8b63ff',
+        title: '#442b87',
+        bullet: '#5f47b9',
+        btn: '#ff66af',
+        deco: '#ffffff'
+      },
+      minimal: {
+        grad: ['#f2f4f8', '#dde4ef', '#c8d1df'],
+        accent: '#1d2e4e',
+        title: '#1a2336',
+        bullet: '#283956',
+        btn: '#1f3f74',
+        deco: '#ffffff'
+      }
+    };
+
+    function getSellingPoints() {
+      return ui.sellingPoints.value.split('\n').map(s => s.trim()).filter(Boolean);
+    }
+
+    function clampText(text, maxLen) {
+      if (text.length <= maxLen) return text;
+      return text.slice(0, Math.max(0, maxLen - 1)).trimEnd() + '…';
+    }
+
+    function pick(arr, idx) { return arr[idx % arr.length]; }
+
+    function generateCopies() {
+      const game = ui.gameName.value.trim() || 'Untitled Game';
+      const points = getSellingPoints();
+      const lang = ui.language.value;
+      const tone = ui.tone.value;
+      const limit = Math.max(20, Number(ui.limit.value) || 65);
+      const dict = (lexicon[lang] && lexicon[lang][tone]) || lexicon.en.casual;
+
+      const ads = [];
+      for (let i = 0; i < 10; i++) {
+        const starter = pick(dict.starters, i);
+        const hook = pick(dict.hooks, i + 2);
+        const point = points.length ? pick(points, i) : '';
+        const template = [starter, game, point, hook].filter(Boolean).join(' · ');
+        ads.push(clampText(template, limit));
+      }
+
+      const ctas = dict.ctas.slice(0, 3).map(c => clampText(c, limit));
+      state.ads = ads;
+      state.ctas = ctas;
+      renderResults();
+      renderPoster();
+    }
+
+    function renderResults() {
+      const frag = document.createDocumentFragment();
+      const addSection = (title, arr, tag) => {
+        const block = document.createElement('div');
+        block.className = 'result-list';
+        arr.forEach((text, i) => {
+          const row = document.createElement('div');
+          row.className = 'result-item';
+          const txt = document.createElement('div');
+          txt.className = 'result-text';
+          txt.innerHTML = `<span class="tag">${tag} ${i + 1}</span>${escapeHtml(text)}`;
+          const btn = document.createElement('button');
+          btn.className = 'ghost';
+          btn.textContent = '复制';
+          btn.addEventListener('click', () => copyText(text));
+          row.append(txt, btn);
+          block.appendChild(row);
+        });
+        const label = document.createElement('h2');
+        label.textContent = title;
+        label.style.marginTop = '10px';
+        frag.append(label, block);
+      };
+
+      ui.results.innerHTML = '';
+      addSection('广告短文案（10）', state.ads, 'Ad');
+      addSection('CTA（3）', state.ctas, 'CTA');
+      ui.results.appendChild(frag);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+    }
+
+    function copyAll() {
+      const payload = [
+        ...state.ads.map((t, i) => `Ad ${i + 1},${csvEscape(t)}`),
+        ...state.ctas.map((t, i) => `CTA ${i + 1},${csvEscape(t)}`)
+      ].join('\n');
+      copyText(payload);
+    }
+
+    function csvEscape(s) {
+      return `"${String(s).replace(/"/g, '""')}"`;
+    }
+
+    function downloadCSV() {
+      const rows = [['type', 'index', 'text']];
+      state.ads.forEach((t, i) => rows.push(['ad', String(i + 1), t]));
+      state.ctas.forEach((t, i) => rows.push(['cta', String(i + 1), t]));
+      const csv = rows.map(r => r.map(csvEscape).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'ad_copies.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function drawBackground(theme) {
+      const t = themes[theme] || themes.cyber;
+      const g = ctx.createLinearGradient(0, 0, ui.canvas.width, ui.canvas.height);
+      g.addColorStop(0, t.grad[0]);
+      g.addColorStop(0.5, t.grad[1]);
+      g.addColorStop(1, t.grad[2]);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, ui.canvas.width, ui.canvas.height);
+
+      ctx.globalAlpha = 0.2;
+      for (let i = 0; i < 16; i++) {
+        ctx.beginPath();
+        ctx.fillStyle = i % 2 ? t.deco : t.accent;
+        const x = (i * 137) % 1080;
+        const y = (i * 223) % 1920;
+        ctx.arc(x, y, 36 + (i % 6) * 22, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      ctx.strokeStyle = `${t.accent}88`;
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 7; i++) {
+        ctx.beginPath();
+        const y = 170 + i * 190;
+        ctx.moveTo(0, y + (i % 2 ? 24 : -24));
+        ctx.lineTo(1080, y + (i % 2 ? -24 : 24));
+        ctx.stroke();
+      }
+    }
+
+    function drawHeroImage() {
+      if (!state.heroImg) return;
+      const { x, y, scale } = state.heroTransform;
+      const img = state.heroImg;
+      const baseW = 840;
+      const w = baseW * scale;
+      const h = (img.height / img.width) * w;
+
+      ctx.save();
+      ctx.globalAlpha = 0.96;
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 20;
+      ctx.drawImage(img, x - w / 2, y - h / 2, w, h);
+      ctx.restore();
+    }
+
+    function drawWrappedText(text, x, y, maxWidth, lineHeight, color, font) {
+      ctx.font = font;
+      ctx.fillStyle = color;
+      const words = text.split('');
+      let line = '';
+      let cy = y;
+      for (let i = 0; i < words.length; i++) {
+        const test = line + words[i];
+        if (ctx.measureText(test).width > maxWidth && line) {
+          ctx.fillText(line, x, cy);
+          line = words[i];
+          cy += lineHeight;
+        } else {
+          line = test;
+        }
+      }
+      if (line) ctx.fillText(line, x, cy);
+      return cy;
+    }
+
+    function renderPoster() {
+      const game = ui.gameName.value.trim() || 'Untitled Game';
+      const points = getSellingPoints().slice(0, 3);
+      const theme = ui.theme.value;
+      const t = themes[theme] || themes.cyber;
+
+      drawBackground(theme);
+      drawHeroImage();
+
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(70, 1180, 940, 640);
+
+      ctx.fillStyle = t.title;
+      ctx.font = 'bold 82px sans-serif';
+      drawWrappedText(game, 90, 1280, 900, 88, t.title, 'bold 82px sans-serif');
+
+      let py = 1410;
+      points.forEach(p => {
+        ctx.fillStyle = t.bullet;
+        ctx.font = 'bold 42px sans-serif';
+        ctx.fillText('•', 102, py);
+        py = drawWrappedText(p, 150, py, 820, 52, t.bullet, '600 42px sans-serif') + 28;
+      });
+
+      const ctaText = state.ctas[0] || defaultCTA();
+      ctx.fillStyle = t.btn;
+      roundRect(ctx, 120, 1705, 840, 130, 65);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 58px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(ctaText, 540, 1788);
+      ctx.textAlign = 'start';
+    }
+
+    function defaultCTA() {
+      const lang = ui.language.value;
+      return ({ zh: '立即体验', en: 'Play Now', de: 'Jetzt spielen', tr: 'Hemen Oyna' })[lang] || 'Play Now';
+    }
+
+    function roundRect(c, x, y, w, h, r) {
+      c.beginPath();
+      c.moveTo(x + r, y);
+      c.arcTo(x + w, y, x + w, y + h, r);
+      c.arcTo(x + w, y + h, x, y + h, r);
+      c.arcTo(x, y + h, x, y, r);
+      c.arcTo(x, y, x + w, y, r);
+      c.closePath();
+    }
+
+    function exportPNG() {
+      const a = document.createElement('a');
+      a.href = ui.canvas.toDataURL('image/png');
+      a.download = 'poster_1080x1920.png';
+      a.click();
+    }
+
+    function bindHeroImageInteraction() {
+      ui.canvas.addEventListener('mousedown', (e) => {
+        state.heroTransform.dragging = true;
+        state.heroTransform.startX = e.offsetX;
+        state.heroTransform.startY = e.offsetY;
+      });
+
+      window.addEventListener('mouseup', () => {
+        state.heroTransform.dragging = false;
+      });
+
+      ui.canvas.addEventListener('mousemove', (e) => {
+        if (!state.heroTransform.dragging || !state.heroImg) return;
+        const ratio = ui.canvas.width / ui.canvas.getBoundingClientRect().width;
+        const dx = (e.offsetX - state.heroTransform.startX) * ratio;
+        const dy = (e.offsetY - state.heroTransform.startY) * ratio;
+        state.heroTransform.x += dx;
+        state.heroTransform.y += dy;
+        state.heroTransform.startX = e.offsetX;
+        state.heroTransform.startY = e.offsetY;
+        renderPoster();
+      });
+
+      ui.canvas.addEventListener('wheel', (e) => {
+        if (!state.heroImg) return;
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.06 : 0.06;
+        state.heroTransform.scale = Math.min(2.5, Math.max(0.3, state.heroTransform.scale + delta));
+        renderPoster();
+      }, { passive: false });
+    }
+
+    function setupEvents() {
+      ui.generateBtn.addEventListener('click', generateCopies);
+      ui.copyAllBtn.addEventListener('click', copyAll);
+      ui.csvBtn.addEventListener('click', downloadCSV);
+      ui.renderBtn.addEventListener('click', renderPoster);
+      ui.exportBtn.addEventListener('click', exportPNG);
+      ui.theme.addEventListener('change', renderPoster);
+      ui.gameName.addEventListener('input', renderPoster);
+      ui.sellingPoints.addEventListener('input', renderPoster);
+      ui.language.addEventListener('change', generateCopies);
+      ui.tone.addEventListener('change', generateCopies);
+      ui.limit.addEventListener('change', generateCopies);
+
+      ui.heroImage.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            state.heroImg = img;
+            state.heroTransform = { x: 540, y: 900, scale: 1, dragging: false, startX: 0, startY: 0 };
+            renderPoster();
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      bindHeroImageInteraction();
+    }
+
+    setupEvents();
+    generateCopies();
+  </script>
+</body>
+</html>
