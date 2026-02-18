@@ -3,67 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KOL 合作管理器</title>
+  <title>游戏商业化 DeepDive 导入工具</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="topbar card">
-    <h1>KOL 合作管理器</h1>
-    <div class="stats" id="budgetStats"></div>
+    <div>
+      <h1>游戏商业化 DeepDive 导入工具</h1>
+      <p class="subtitle">按你给的商业化维度录入、导入和导出 CSV，并自动汇总共性标签。</p>
+    </div>
+    <div class="stats" id="statsPanel"></div>
   </header>
 
   <section class="card controls">
     <div class="row">
-      <input id="searchInput" placeholder="搜索名称/备注/语言..." />
-      <select id="filterCountry"><option value="">全部国家</option></select>
-      <select id="filterPlatform"><option value="">全部平台</option><option>YouTube</option><option>TikTok</option><option>IG</option></select>
-      <select id="filterStatus"><option value="">全部状态</option></select>
-      <select id="filterOwner"><option value="">全部负责人</option></select>
+      <input id="searchInput" placeholder="搜索游戏名/类型/主引擎/风险原因..." />
+      <select id="filterModel"><option value="">全部变现模式</option></select>
+      <select id="filterEngine"><option value="">全部主引擎</option></select>
+      <select id="filterRhythm"><option value="">全部 LiveOps 节奏</option></select>
+      <select id="filterRisk"><option value="">全部欧洲风险等级</option></select>
     </div>
     <div class="row">
-      <button id="addBtn">+ 新增合作</button>
-      <button id="exportCsvBtn">导出合作 CSV</button>
-      <button id="exportFollowupBtn">导出待跟进 CSV</button>
-      <button id="exportSummaryBtn">导出费用汇总 CSV</button>
-      <label class="upload-btn">导入 CSV<input id="importCsvInput" type="file" accept=".csv" hidden /></label>
+      <button id="addBtn">+ 新增游戏</button>
+      <button id="exportBtn">导出 DeepDive CSV</button>
+      <button id="exportTemplateBtn">下载导入模板 CSV</button>
+      <label class="upload-btn">导入 CSV<input id="importInput" type="file" accept=".csv" hidden /></label>
+      <button id="clearBtn" class="danger">清空全部数据</button>
     </div>
   </section>
 
   <section class="card">
-    <h2>Pipeline 看板</h2>
-    <div id="board" class="board"></div>
+    <h2>标准化标签概览（用于最后统计共性）</h2>
+    <div id="insightPanel" class="insight-grid"></div>
   </section>
 
   <section class="card">
-    <h2>合作表格（可直接编辑）</h2>
+    <h2>DeepDive 主表（可直接编辑，点击表头排序）</h2>
     <div class="table-wrap">
-      <table id="kolTable">
-        <thead>
-          <tr id="tableHead"></tr>
-        </thead>
+      <table>
+        <thead><tr id="tableHead"></tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
   </section>
 
-  <section class="card">
-    <h2>待跟进清单</h2>
-    <ul id="followupList" class="followup-list"></ul>
-  </section>
-
-  <section class="card">
-    <h2>消息模板（中/英/土）</h2>
-    <div id="templatePanel" class="template-panel">点击表格或看板中的“模板”查看对应文案。</div>
-  </section>
-
   <section class="card help">
-    <h2>使用说明</h2>
+    <h2>录入建议</h2>
     <ol>
-      <li>点击“新增合作”添加空白条目，在表格里直接编辑字段，支持排序（点击表头）。</li>
-      <li>看板中可拖拽卡片跨列更新状态；拖拽后会自动保存到 localStorage。</li>
-      <li>顶部筛选支持国家/平台/状态/负责人和关键词搜索。</li>
-      <li>导出支持：合作列表、待跟进清单、费用汇总；导入 CSV 时表头需与导出一致。</li>
-      <li>自动计算预算、CPV/CPC（缺少数据会显示 N/A），并自动生成按截止日期的待跟进提醒。</li>
+      <li>多选字段（如广告类型、活动类型、IAP 商品类型）请用半角分号分隔：<code>Rewarded;Interstitial</code>。</li>
+      <li>优先填「标准化标签」8列，能帮助你快速横向对比所有游戏。</li>
+      <li>导入 CSV 时表头需与模板一致；未知枚举值会保留原值，方便后续修正。</li>
+      <li>数据会自动保存在浏览器 localStorage，刷新页面不会丢失。</li>
     </ol>
   </section>
 
