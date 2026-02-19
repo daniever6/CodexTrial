@@ -3,76 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>游戏商业化 DeepDive 工作台</title>
+  <title>移动游戏深度调查录入器（EU）</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="card topbar">
-    <div>
-      <h1>游戏商业化 DeepDive 工作台</h1>
-      <p class="subtitle">按维度填数，自动汇总共性标签（IAP/IAA/订阅/LiveOps/风险等）。</p>
+  <header>
+    <h1>移动游戏深度调查录入器（EU）</h1>
+    <div class="toolbar">
+      <button id="newDbBtn">新建空数据库</button>
+      <label class="file-btn">加载 games.db<input id="loadDbInput" type="file" accept=".db,.sqlite,.sqlite3" hidden /></label>
+      <button id="exportDbBtn">导出当前 games.db</button>
+      <span id="dbStatus">未初始化</span>
     </div>
-    <div id="statsPanel" class="stats"></div>
   </header>
 
-  <section class="card controls">
-    <div class="row">
-      <input id="searchInput" placeholder="搜索游戏名/品类/主引擎/风险原因" />
-      <select id="filterModel"><option value="">全部变现模式</option></select>
-      <select id="filterEngine"><option value="">全部主引擎</option></select>
-      <select id="filterRisk"><option value="">全部风险等级</option></select>
-    </div>
-    <div class="row">
-      <button id="addBtn">+ 新增游戏样本</button>
-      <button id="duplicateBtn">复制当前样本</button>
-      <button id="exportBtn">导出 CSV</button>
-      <button id="exportTemplateBtn">下载模板 CSV</button>
-      <label class="upload-btn">导入 CSV<input id="importInput" type="file" accept=".csv" hidden /></label>
-      <button id="clearBtn" class="danger">清空全部</button>
-    </div>
-  </section>
+  <nav class="tabs">
+    <button class="tab active" data-tab="form">新增调查</button>
+    <button class="tab" data-tab="list">游戏列表</button>
+    <button class="tab" data-tab="stats">共性统计</button>
+    <button class="tab" data-tab="exports">导出</button>
+  </nav>
 
-  <section class="workspace">
-    <aside class="card list-panel">
-      <h2>样本列表</h2>
-      <div id="sampleList" class="sample-list"></div>
-    </aside>
+  <main>
+    <section class="tab-page active" id="tab-form">
+      <form id="gameForm"></form>
+    </section>
 
-    <main class="card editor-panel">
-      <h2>维度录入器</h2>
-      <div id="emptyHint" class="empty-hint">请先新增或选择一个游戏样本。</div>
-      <form id="editorForm" class="editor-form hidden"></form>
-    </main>
-  </section>
+    <section class="tab-page" id="tab-list">
+      <div class="filters">
+        <input id="searchInput" placeholder="搜索 game / publisher" />
+        <select id="filterGenre"></select>
+        <select id="filterMonetization"></select>
+        <select id="filterLiveOps"></select>
+        <select id="filterEu"></select>
+        <select id="filterPotential"></select>
+        <button id="resetFiltersBtn">重置筛选</button>
+      </div>
+      <table id="listTable"></table>
+    </section>
 
-  <section class="card">
-    <h2>共性汇总（8个标准化标签）</h2>
-    <div id="insightPanel" class="insight-grid"></div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>标签</th>
-            <th>分布</th>
-            <th>Top1</th>
-            <th>Top1占比</th>
-          </tr>
-        </thead>
-        <tbody id="commonTableBody"></tbody>
-      </table>
-    </div>
-  </section>
+    <section class="tab-page" id="tab-stats">
+      <div class="stats-topbar">
+        <label><input type="checkbox" id="includeUnknown" /> 包含 Unknown</label>
+        <button id="exportSummaryBtn">导出 summary.csv</button>
+      </div>
+      <div id="freqCards" class="grid"></div>
+      <div class="grid two">
+        <div>
+          <h3>交叉表：Genre × Monetization</h3>
+          <div id="crossGenreMonetization"></div>
+        </div>
+        <div>
+          <h3>交叉表：IAP #1 × LiveOps</h3>
+          <div id="crossIapLiveops"></div>
+        </div>
+      </div>
+      <div>
+        <h3>Top 组合（Genre + iap_primary_1 + liveops_cadence）</h3>
+        <label>Top N: <input id="topN" type="number" min="1" max="100" value="10" /></label>
+        <div id="topCombos"></div>
+      </div>
+    </section>
 
-  <section class="card help">
-    <h2>使用说明</h2>
-    <ol>
-      <li>先在左侧选择游戏，再在右侧按“6大块维度”填写。</li>
-      <li>多选字段请用分号分隔，如 <code>Rewarded;Interstitial</code>。</li>
-      <li>建议先填“标准化标签”字段，可直接驱动共性统计。</li>
-      <li>导入 CSV 时表头需与模板一致，数据会自动保存到浏览器本地。</li>
-    </ol>
-  </section>
+    <section class="tab-page" id="tab-exports">
+      <div class="card">
+        <button id="exportAllCsvBtn">导出全量 CSV</button>
+        <button id="exportFilteredCsvBtn">导出筛选结果 CSV</button>
+        <button id="exportExcelBtn">导出 Excel（单 Sheet）</button>
+      </div>
+    </section>
+  </main>
 
+  <script src="assets/sql-wasm.js"></script>
+  <script src="assets/xlsx.full.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
